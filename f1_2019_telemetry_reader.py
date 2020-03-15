@@ -35,6 +35,7 @@ class DataReceiver:
     def isRunning(self):
         return self._running
 
+    # data is updated inplace, no need to get new data on each iteration
     def getData(self):
         return self._data
         
@@ -48,7 +49,7 @@ class DataReceiver:
     def _runServer(self):
         try:
             sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
-            sock.settimeout(0.2)
+            sock.settimeout(0.1)
             sock.bind(('127.0.0.1', self._port))      
             while self._running:
                 try:
@@ -145,13 +146,13 @@ class Telemetry(CarTelemetry):
 
 
 # PARSER ##########################################################
-class F1Parser(object):
+class F12019Parser(object):
     HEADER_LENGTH = 23
     HEADER_PATTERN = '<HBBBBQfIB'
 
     CAR_MOTION_PATTERN = 'ffffffhhhhhhffffff'
     CAR_TELEMETRY_PATTERN = 'HfffBbHBB' + ('H'*12) + 'HffffBBBB'
-    PACKET_ID_TO_SIZE = {0: 1320, 1:126, 2:820, 3:9, 4:1081, 5:820, 6:1324, 7:1120}
+    PACKET_ID_TO_SIZE = {0: 1343, 1:149, 2:843, 3:32, 4:1104, 5:843, 6:1347, 7:1143}
 
     ID_TO_PATTERN = {0: '<' + (20*CAR_MOTION_PATTERN) + (30*'f'),\
                      6: '<' + (20*CAR_TELEMETRY_PATTERN) + 'I'}
@@ -160,41 +161,41 @@ class F1Parser(object):
                   4:"Participants", 5:"Car Setups", 6:"Telemetry", 7:"Car Status"}
 
     def parseMessage(self, packet):
-        header = packet[:F1Parser.HEADER_LENGTH]
+        header = packet[:F12019Parser.HEADER_LENGTH]
         packet_id, player_id = self._getMessageType(header)
-        if packet_id not in F1Parser.ID_TO_PATTERN:
+        assert len(packet) == F12019Parser.PACKET_ID_TO_SIZE[packet_id], "Packet size does not match the message"
+        if packet_id not in F12019Parser.ID_TO_PATTERN:
             return {}        
-        pattern = F1Parser.ID_TO_PATTERN[packet_id]
-        msg = packet[F1Parser.HEADER_LENGTH:]
-        assert len(msg) == F1Parser.PACKET_ID_TO_SIZE[packet_id], "Packet size does not match the message"
-        parsed = struct.unpack(pattern, msg)    
-        message_name = F1Parser.ID_TO_NAME[packet_id];
-        cls = F1Parser.ID_TO_CLASS[packet_id];
+        unpack_pattern = F12019Parser.ID_TO_PATTERN[packet_id]
+        msg = packet[F12019Parser.HEADER_LENGTH:]        
+        parsed = struct.unpack(unpack_pattern, msg)    
+        message_name = F12019Parser.ID_TO_NAME[packet_id];
+        cls = F12019Parser.ID_TO_CLASS[packet_id];
         return {message_name: cls(parsed, player_id)}       
     
     def getEmptyData(self):
         data = {}
-        for key, cls in F1Parser.ID_TO_CLASS.items():
-            name = F1Parser.ID_TO_NAME[key]
-            data[name] = cls((0,)*500, 0)            
+        for packet_id, cls in F12019Parser.ID_TO_CLASS.items():
+            name = F12019Parser.ID_TO_NAME[packet_id]
+            num_fields = len(F12019Parser.ID_TO_PATTERN[packet_id])
+            data[name] = cls((0,)*num_fields, 0)            
         return data
 
     def _getMessageType(self, header_data):
-        version, _, _, _, packet_id, _, _, _, player_id = struct.unpack(F1Parser.HEADER_PATTERN, header_data)
+        version, _, _, _, packet_id, _, _, _, player_id = struct.unpack(F12019Parser.HEADER_PATTERN, header_data)
         assert version == 2019, 'VERSION IS NOT 2019: ' + str(version)
         return packet_id, player_id        
 
 # EXAMPLE ######################################################################
 # te instrukcje beda wykonane tylko jezeli odpalasz ten skrypt bezposrednio: C:\Python27\python.exe C:\Users\tomas\Desktop\f1.py
 if __name__ == '__main__':
-    # PRZYKLADOWE UZYCIE
-    parser = F1Parser()
-    receiver = DataReceiver(parser)
-    receiver.start() # program zaczyna sluchac telemetrii
-    print "Will print telemetry every second:"
-    while receiver.isRunning(): #  nieskonczona petla
-        data = receiver.getData() # przeczytaj telemetrie
+    # PRZYKLADOWE UZYCIE    
+    receiver = DataReceiver(F12019Parser())
+    receiver.start() # wystartuje osobny watek, ktory odbiera pakiety w tle
+    data = receiver.getData() # przeczytaj telemetrie raz - sama sie odswieza
+    print "Will print telemetry once available:"
+    while receiver.isRunning(): #  nieskonczona petla        
         if receiver.isConnected():
             print "speed", data['Telemetry'].speed, " throttle", data['Telemetry'].throttle, \
                 " brake", data['Telemetry'].brake, " gear", data['Telemetry'].gear
-        time.sleep(1) # nie uzywaj sleepa w programie sterujacym!
+        time.sleep(0.1) # nie uzywaj sleepa w programie sterujacym!
