@@ -2,10 +2,6 @@ cmake_minimum_required(VERSION 3.5)
 
 project(f1-overlay LANGUAGES CXX)
 
-
-
-
-
 set(CMAKE_INCLUDE_CURRENT_DIR ON)
 
 set(CMAKE_AUTOUIC ON)
@@ -49,7 +45,7 @@ target_link_libraries(f1-overlay PRIVATE  Qt5::Gui)
 target_link_libraries(f1-overlay-lib PRIVATE  Qt5::Gui)
 
 
-install(FILES f1_overlay.py DESTINATION bin)
+install(FILES f1_overlay.py f1_2019_telemetry_reader.py DESTINATION bin)
 install(TARGETS f1-overlay f1-overlay-lib DESTINATION bin)
 
 set(CPACK_SOURCE_GENERATOR "ZIP")
@@ -59,4 +55,3 @@ set(CPACK_INCLUDE_TOPLEVEL_DIRECTORY OFF)
 set(CPACK_PACKAGE_FILE_NAME "${CMAKE_PROJECT_NAME}-${CPACK_SYSTEM_NAME}") # no version
 
 include(CPack)
-
