@@ -1,0 +1,5 @@
+bin/
+*.txt.user
+*.swp
+*.pyc
+*un~
