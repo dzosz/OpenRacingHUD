@@ -3,13 +3,16 @@
 #include <QGuiApplication>
 #include <iostream>
 
-WheelSlipWindow* window;
 #ifdef __cplusplus
 extern "C"
 {
+#endif
     int start(int argc, char* argv[]);
+#ifdef __cplusplus
 }
 #endif
+
+WheelSlipWindow* window;
 
 int main(int argc, char* argv[])
 {

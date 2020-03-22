@@ -1,5 +1,5 @@
-#ifndef OPENGLWIDGET_H
-#define OPENGLWIDGET_H
+#ifndef WHEELSLIPWINDOW_H
+#define WHEELSLIPWINDOW_H
 
 #include <QMouseEvent>
 #include <QOpenGLFunctions>
@@ -31,4 +31,4 @@ class WheelSlipWindow : public QOpenGLWindow
     int  mouseClickY;
 };
 
-#endif  // OPENGLWIDGET_H
+#endif  // WHEELSLIPWINDOW_H

@@ -5,7 +5,15 @@
 #include <QGuiApplication>
 #include <thread>
 
-extern int              start(int argc, char* argv[]);
+#ifdef __cplusplus
+extern "C"
+{
+#endif
+    int start(int argc, char* argv[]);
+#ifdef __cplusplus
+}
+#endif
+
 extern WheelSlipWindow* window;
 
 void f1_overlay_start()
