@@ -2,7 +2,11 @@ import threading
 import socket
 import struct
 import time
+import os
+import sys
 
+sys.path.append(os.path.abspath('./overlay/bin/'))
+from f1_overlay import *
 
 def singleton(class_):
     instances = {}
@@ -15,13 +19,14 @@ def singleton(class_):
 # UDP RECEIVER ##########################################
 @singleton
 class DataReceiver:
-    def __init__(self, parser):       
+    def __init__(self, parser):
         self._running = False
         self._thread = None
         self._parser = parser
         self._data = parser.getEmptyData()
         self._port = 20789
         self._connected = False
+        self._callback = None
         
     def start(self):  
         if self._thread:
@@ -46,8 +51,12 @@ class DataReceiver:
         self._running = False 
         self._thread.join()  
 
+    def register(self, callback):
+        self._callback = callback
+
     def _runServer(self):
         try:
+            print "Listening on port", self._port
             sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
             sock.settimeout(0.1)
             sock.bind(('127.0.0.1', self._port))      
@@ -59,6 +68,7 @@ class DataReceiver:
                     self._connected = True
                     parsed = self._parser.parseMessage(packet)
                     self._data.update(parsed)
+                    self._callback(self._data)
                 except socket.timeout:
                     self._connected = False
                     continue
@@ -190,12 +200,16 @@ class F12019Parser(object):
 # te instrukcje beda wykonane tylko jezeli odpalasz ten skrypt bezposrednio: C:\Python27\python.exe C:\Users\tomas\Desktop\f1.py
 if __name__ == '__main__':
     # PRZYKLADOWE UZYCIE    
+    overlay = F1Overlay()
     receiver = DataReceiver(F12019Parser())
+    receiver.register(lambda data: overlay.update(*data['Motion'].wheelSlip))
     receiver.start() # wystartuje osobny watek, ktory odbiera pakiety w tle
     data = receiver.getData() # przeczytaj telemetrie raz - sama sie odswieza
-    print "Will print telemetry once available:"
     while receiver.isRunning(): #  nieskonczona petla        
+        receiver._callback(data)
         if receiver.isConnected():
-            print "speed", data['Telemetry'].speed, " throttle", data['Telemetry'].throttle, \
-                " brake", data['Telemetry'].brake, " gear", data['Telemetry'].gear
-        time.sleep(0.1) # nie uzywaj sleepa w programie sterujacym!
+            #print "speed", data['Telemetry'].speed, " throttle", data['Telemetry'].throttle, \
+            #    " brake", data['Telemetry'].brake, " gear", data['Telemetry'].gear
+            pass
+         # nie uzywaj sleepa w programie sterujacym!
+        time.sleep(1/10)
