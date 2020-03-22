@@ -26,12 +26,12 @@ int start(int argc, char* argv[])
     format.setRenderableType(QSurfaceFormat::OpenGL);
     format.setProfile(QSurfaceFormat::CoreProfile);
     format.setVersion(3, 3);
-    format.setAlphaBufferSize(8);
+    // format.setAlphaBufferSize(8);
 
     static WheelSlipWindow w;
     window = &w;
     w.setFormat(format);
-    w.resize(QSize(500, 600));
+    // w.resize(QSize(500, 600));
     w.show();
     return a.exec();
 }

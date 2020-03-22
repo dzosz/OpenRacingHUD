@@ -20,15 +20,17 @@ class WheelSlipWindow : public QOpenGLWindow
     void slipSignal();
 
   private:
-    int rl;
-    int rr;
-    int fl;
-    int fr;
+    int rearLeft   = 0;
+    int rearRight  = 0;
+    int frontLeft  = 0;
+    int frontRight = 0;
 
-    void mousePressEvent(QMouseEvent *event);
-    void mouseReleaseEvent(QMouseEvent *event);
-    int  mouseClickX;
-    int  mouseClickY;
+    void  mousePressEvent(QMouseEvent *event);
+    void  mouseReleaseEvent(QMouseEvent *event);
+    int   mouseClickX;
+    int   mouseClickY;
+    bool  awaitingRender = true;
+    qreal circleRadius;
 };
 
 #endif  // WHEELSLIPWINDOW_H

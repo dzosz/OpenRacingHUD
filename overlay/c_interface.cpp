@@ -1,5 +1,6 @@
 #include <c_interface.h>
 
+#include "helpers.h"
 #include "wheelslipwindow.hpp"
 
 #include <QGuiApplication>
@@ -27,7 +28,8 @@ void f1_overlay_start()
         std::this_thread::sleep_for(std::chrono::milliseconds(500));  // works every time!
     }
 }
-void f1_overlay_update_slip(int rl, int rr, int fl, int fr)
+void f1_overlay_update_slip(double rl, double rr, double fl, double fr)
 {
-    window->updateSlip(rl, rr, fl, fr);
+    window->updateSlip(getPercentageWheelSlip(rl), getPercentageWheelSlip(rr),
+                       getPercentageWheelSlip(fl), getPercentageWheelSlip(fr));
 }

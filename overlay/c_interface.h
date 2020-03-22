@@ -7,7 +7,7 @@ extern "C"
 #endif
 
     void f1_overlay_start();
-    void f1_overlay_update_slip(int rl, int rr, int fl, int fr);
+    void f1_overlay_update_slip(double rl, double rr, double fl, double fr);
 
 #ifdef __cplusplus
 }
