@@ -15,8 +15,7 @@ WheelSlipWindow::WheelSlipWindow()
     timer.start(1000 / 60);
 
     connect(this, SIGNAL(slipSignal()), this, SLOT(update()));
-
-    this->setFlags(Qt::WindowStaysOnTopHint | Qt::FramelessWindowHint);
+    this->setFlags(Qt::WindowStaysOnTopHint | Qt::FramelessWindowHint | Qt::WindowCloseButtonHint);
 
     this->setOpacity(0.6);
 
@@ -100,21 +99,28 @@ void WheelSlipWindow::paintGL()
     awaitingRender = false;
 }
 
-void WheelSlipWindow::updateSlip(int rl, int rr, int fl, int fr)
+void WheelSlipWindow::updateSlip(double RL, double RR, double FL, double FR)
 {
+    int rl = getPercentageWheelSlip(RL);
+    int rr = getPercentageWheelSlip(RR);
+    int fl = getPercentageWheelSlip(FL);
+    int fr = getPercentageWheelSlip(FR);
+
     bool anyChanges = !(rl == rearLeft && rr == rearRight && fl == frontLeft && fr == frontRight);
 
-    this->rearLeft   = rl;
-    this->rearRight  = rr;
-    this->frontLeft  = fl;
-    this->frontRight = fr;
+    if (anyChanges)
+    {
+        this->rearLeft   = rl;
+        this->rearRight  = rr;
+        this->frontLeft  = fl;
+        this->frontRight = fr;
 
-    // emiting signal from a separate thread is a latency joke, just use timer in the mainthread to
-    // render updated values
-    // emit slipSignal();
+        // emiting signal from a python thread is a latency joke, just use timer in the
+        // mainthread to render updated values emit slipSignal();
 
-    std::atomic_thread_fence(std::memory_order_release);
-    this->awaitingRender = anyChanges;
+        std::atomic_thread_fence(std::memory_order_release);
+        this->awaitingRender = anyChanges;
+    }
 }
 
 void WheelSlipWindow::mousePressEvent(QMouseEvent* event)

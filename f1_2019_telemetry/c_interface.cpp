@@ -15,6 +15,7 @@ extern "C"
 }
 #endif
 
+/*
 extern WheelSlipWindow* window;
 
 void f1_overlay_start()
@@ -33,3 +34,5 @@ void f1_overlay_update_slip(double rl, double rr, double fl, double fr)
     window->updateSlip(getPercentageWheelSlip(rl), getPercentageWheelSlip(rr),
                        getPercentageWheelSlip(fl), getPercentageWheelSlip(fr));
 }
+
+*/

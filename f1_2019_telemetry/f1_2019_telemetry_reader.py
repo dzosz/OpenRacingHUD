@@ -2,11 +2,6 @@ import threading
 import socket
 import struct
 import time
-import os
-import sys
-
-sys.path.append(os.path.abspath('./overlay/bin/'))
-from f1_overlay import *
 
 def singleton(class_):
     instances = {}
@@ -27,14 +22,14 @@ class DataReceiver:
         self._port = 20789
         self._connected = False
         self._callback = None
-        
-    def start(self):  
+
+    def start(self):
         if self._thread:
             # jesli juz wystartowany to nic nie robimy
-            return          
+            return
         self._thread = threading.Thread(target=self._runServer)
         self._thread.daemon = True
-        self._running = True;
+        self._running = True
         self._thread.start()
 
     def isRunning(self):
@@ -43,23 +38,31 @@ class DataReceiver:
     # data is updated inplace, no need to get new data on each iteration
     def getData(self):
         return self._data
-        
+
     def isConnected(self):
         return self._connected
 
     def stop(self):
-        self._running = False 
-        self._thread.join()  
+        print "stopping"
+        self._running = False
+        self._thread.join()
+        print "stopped"
 
     def register(self, callback):
         self._callback = callback
 
     def _runServer(self):
         try:
-            print "Listening on port", self._port
+            #ip = '127.0.0.1'
+            ip = '0.0.0.0' # broadcast
+            ip = '0.0.0.0' # broadcast
+            msg = "Listening on " + ip + ":" + str(self._port)
+            print msg
             sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
-            sock.settimeout(0.1)
-            sock.bind(('127.0.0.1', self._port))      
+            sock.settimeout(0.2)
+            sock.setsockopt(socket.SOL_SOCKET, socket.SO_BROADCAST, 1)
+            sock.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
+            sock.bind((ip, self._port))
             while self._running:
                 try:
                     packet, addr = sock.recvfrom(3096)
@@ -68,11 +71,12 @@ class DataReceiver:
                     self._connected = True
                     parsed = self._parser.parseMessage(packet)
                     self._data.update(parsed)
-                    self._callback(self._data)
+                    if self._callback:
+                        self._callback(self._data)
                 except socket.timeout:
                     self._connected = False
                     continue
-        except Exception as e:
+        except Exception:
             self._running = False
             raise
         self._running = False
@@ -200,16 +204,16 @@ class F12019Parser(object):
 # te instrukcje beda wykonane tylko jezeli odpalasz ten skrypt bezposrednio: C:\Python27\python.exe C:\Users\tomas\Desktop\f1.py
 if __name__ == '__main__':
     # PRZYKLADOWE UZYCIE    
-    overlay = F1Overlay()
+
     receiver = DataReceiver(F12019Parser())
-    receiver.register(lambda data: overlay.update(*data['Motion'].wheelSlip))
+    #overlay = F1Overlay()
+    #receiver.register(lambda data: overlay.update(*data['Motion'].wheelSlip))
     receiver.start() # wystartuje osobny watek, ktory odbiera pakiety w tle
     data = receiver.getData() # przeczytaj telemetrie raz - sama sie odswieza
-    while receiver.isRunning(): #  nieskonczona petla        
-        receiver._callback(data)
+    while receiver.isRunning(): #  nieskonczona petla
         if receiver.isConnected():
             #print "speed", data['Telemetry'].speed, " throttle", data['Telemetry'].throttle, \
             #    " brake", data['Telemetry'].brake, " gear", data['Telemetry'].gear
             pass
          # nie uzywaj sleepa w programie sterujacym!
-        time.sleep(1/10)
+        time.sleep(1)
