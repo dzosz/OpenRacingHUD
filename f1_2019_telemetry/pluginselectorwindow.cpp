@@ -1,15 +1,20 @@
 #include "pluginselectorwindow.hpp"
+
+#include <iostream>
+
 PluginSelectorWindow::PluginSelectorWindow()
 {
     this->setTitle(QString("F1 2019 Overlay"));
+    wheelSlip = new WheelSlipWindow;
 }
 
 bool PluginSelectorWindow::event(QEvent *ev)
 {
-    if (ev->type() == QEvent::Close)
+    auto ret = QWindow::event(ev);
+    if (ev->type() == QEvent::Close && wheelSlip)
     {
-        wheelSlip.close();
+        wheelSlip->close();
+        wheelSlip = nullptr;
     }
-
-    return QWindow::event(ev);
+    return ret;
 }

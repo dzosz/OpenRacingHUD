@@ -36,7 +36,7 @@ static std::string receiverCallbackFunc = "register";
 static PyObject*      receiver;
 static PyThreadState* _save;
 
-std::function<void(double, double, double, double)> wheelCallback;
+static std::function<void(double, double, double, double)> wheelCallback;
 
 extern "C" PyObject* printOnMessage(PyObject*, PyObject* args)
 {
@@ -79,18 +79,26 @@ void setDefaultCallback(PyObject* inst)
     auto called = PyObject_CallMethodObjArgs(inst, callbackName, pythonCallback, NULL);
     assert(called);
 
+    /*
     Py_DECREF(callbackName);
     Py_DECREF(name);
+    */
+
     // PyTuple_PackPy_DECREF(args);
 }
 
 F1DataReceiver::F1DataReceiver()
 {
     auto fname = getexepath();
-    auto argv  = (char*)fname.c_str();
+    assert(!fname.empty());
+
+    auto argv = (char*)fname.c_str();
+
     setvbuf(stdout, NULL, _IOLBF, 0);  // non buffered stdout
+
     Py_Initialize();
-    PyEval_InitThreads();
+    if (!PyEval_ThreadsInitialized())
+        PyEval_InitThreads();
     Py_SetProgramName((char*)argv);
 
     PySys_SetArgv(1, &argv);
@@ -112,16 +120,16 @@ F1DataReceiver::F1DataReceiver()
 
     receiver = PyObject_CallObject(receiverCls, args);
     assert(receiver);
-
-    Py_DECREF(args);
 }
 F1DataReceiver::~F1DataReceiver()
 {
     this->stop();
+    Py_Finalize();
 }
 void F1DataReceiver::start()
 {
     setDefaultCallback(receiver);
+
     auto called = PyObject_CallMethod(receiver, (char*)receiverStartFunc.c_str(), NULL);
     assert(called);
 
@@ -137,5 +145,5 @@ void F1DataReceiver::stop()
 {
     PyEval_RestoreThread(_save);
     auto called = PyObject_CallMethod(receiver, (char*)receiverStopFunc.c_str(), NULL);
-    assert(!called);
+    assert(called);
 }

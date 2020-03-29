@@ -43,10 +43,8 @@ class DataReceiver:
         return self._connected
 
     def stop(self):
-        print "stopping"
         self._running = False
         self._thread.join()
-        print "stopped"
 
     def register(self, callback):
         self._callback = callback
@@ -54,7 +52,6 @@ class DataReceiver:
     def _runServer(self):
         try:
             #ip = '127.0.0.1'
-            ip = '0.0.0.0' # broadcast
             ip = '0.0.0.0' # broadcast
             msg = "Listening on " + ip + ":" + str(self._port)
             print msg

@@ -12,12 +12,15 @@ class WheelSlipWindow : public QOpenGLWindow
     WheelSlipWindow();
 
     void paintGL() override;
-    void initializeGL() override;
+    // void initializeGL() override;
     // void resizeGL(int width, int height) override;
     void updateSlip(double rl, double rr, double fl, double fr);
 
   signals:
     void slipSignal();
+
+  private slots:
+    void timeout();
 
   private:
     int rearLeft   = 0;

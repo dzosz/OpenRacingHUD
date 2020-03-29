@@ -11,11 +11,11 @@
 WheelSlipWindow::WheelSlipWindow()
 {
     static QTimer timer(this);
-    connect(&timer, SIGNAL(timeout()), this, SLOT(update()));
+    connect(&timer, SIGNAL(timeout()), this, SLOT(timeout()));
     timer.start(1000 / 60);
 
     connect(this, SIGNAL(slipSignal()), this, SLOT(update()));
-    this->setFlags(Qt::WindowStaysOnTopHint | Qt::FramelessWindowHint | Qt::WindowCloseButtonHint);
+    this->setFlags(Qt::WindowStaysOnTopHint | Qt::FramelessWindowHint);
 
     this->setOpacity(0.6);
 
@@ -23,13 +23,18 @@ WheelSlipWindow::WheelSlipWindow()
     QScreen* screen         = QGuiApplication::primaryScreen();
     QRect    screenGeometry = screen->geometry();
 
-    double height = screenGeometry.height();
-    // double width = screenGeometry.width();
+    double desktopHeight = screenGeometry.height();
+    double desktopWidth  = screenGeometry.width();
 
-    double scaleMultiplier = height / 2160;
+    double scaleMultiplier = desktopHeight / 2160;
     circleRadius           = 150 * scaleMultiplier;
 
-    this->resize(circleRadius * 3, circleRadius * 3.5);
+    auto pluginWidth  = circleRadius * 3;
+    auto pluginHeight = circleRadius * 3.5;
+    // this->resize(pluginWidth, pluginHeight);
+
+    this->setGeometry((desktopWidth / 2) - (pluginWidth / 2),
+                      (desktopHeight / 2) + (pluginHeight / 2), pluginWidth, pluginHeight);
 
     // ALTERNATIVE TO  format.setAlphaBufferSize(8);
     // render only selected area of the window, clicking between the regions does not activate the
@@ -43,17 +48,14 @@ WheelSlipWindow::WheelSlipWindow()
     auto all = a.united(b).united(c).united(d);
     this->setMask(all);
 }
+
+/*
 void WheelSlipWindow::initializeGL()
 {
 }
-
+*/
 void WheelSlipWindow::paintGL()
 {
-    if (!awaitingRender)
-    {
-        return;
-    }
-
     QPainter painter(this);
 
     // erase previous area so it's transparent
@@ -99,6 +101,15 @@ void WheelSlipWindow::paintGL()
     awaitingRender = false;
 }
 
+void WheelSlipWindow::timeout()
+{
+    if (awaitingRender)
+    {
+        std::atomic_thread_fence(std::memory_order_acquire);
+        this->update();
+    }
+}
+
 void WheelSlipWindow::updateSlip(double RL, double RR, double FL, double FR)
 {
     int rl = getPercentageWheelSlip(RL);
@@ -116,7 +127,8 @@ void WheelSlipWindow::updateSlip(double RL, double RR, double FL, double FR)
         this->frontRight = fr;
 
         // emiting signal from a python thread is a latency joke, just use timer in the
-        // mainthread to render updated values emit slipSignal();
+        // mainthread to render updated values;
+        // emit slipSignal();
 
         std::atomic_thread_fence(std::memory_order_release);
         this->awaitingRender = anyChanges;

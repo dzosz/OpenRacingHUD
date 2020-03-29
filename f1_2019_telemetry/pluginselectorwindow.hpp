@@ -10,9 +10,9 @@ class PluginSelectorWindow : public QWindow
 
   public:
     PluginSelectorWindow();
-    bool event(QEvent *ev) override;
+    bool event(QEvent* ev) override;
 
-    WheelSlipWindow wheelSlip;
+    WheelSlipWindow* wheelSlip;
 };
 
 #endif  // PLUGINSELECTORWINDOW_H
