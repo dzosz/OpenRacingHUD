@@ -1,4 +1,4 @@
-#include "pluginselectorwindow.hpp"
+#include "plugin_selector_window.hpp"
 #include "wheelslipwindow.hpp"
 
 #include <QGuiApplication>

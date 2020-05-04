@@ -47,43 +47,68 @@ elseif (UNIX)
     set(LINUX_LINK_QT Qt5::Gui)
 endif ()
 
-
+set(QML_IMPORT_PATH ${CMAKE_SOURCE_DIR}/plugins CACHE STRING "" FORCE)
 SET(CMAKE_INSTALL_PREFIX ${CMAKE_SOURCE_DIR})
 
 #find_package(Python2 COMPONENTS Development REQUIRED)
-find_package(Qt5 COMPONENTS Gui REQUIRED)
+find_package(Qt5 COMPONENTS Widgets Quick Gui Core Qml REQUIRED)
+find_package(Qt5QuickCompiler)
 
-
+#qtquick_compiler_add_resources(RESOURCES example.qrc)
+#qt5_use_modules(myapp Quick Core Network)
 SET(sources
     f1_data_receiver.cpp
     #${CONDITIONAL_WIN32_SOURCES}
 )
 
 
-add_executable(f1overlay
+#add_executable(f1overlay
+#    #${CONDITIONAL_WIN32_FLAG}
+#    ${sources}
+#    main.cpp
+#)
+
+add_executable(qmloverlay
     #${CONDITIONAL_WIN32_FLAG}
-    ${sources}
-    main.cpp
+    mainqml.cpp
+    python_runner.cpp
+    plugin_selector_window.cpp
+
+)
+
+add_executable(tests
+    #${CONDITIONAL_WIN32_FLAG}
+    tests/python_runner_tests.cpp
+    python_runner.cpp
 )
 
 
-add_library(overlay SHARED
-    wheelslipwindow.cpp
-    pluginselectorwindow.cpp
-    overlay_interface.cpp
-)
+#add_library(overlay SHARED
+#    wheelslipwindow.cpp
+#    plugin_selector_window.cpp
+#    overlay_interface.cpp
+#)
+
+# fake target
+#set(QML_SOURCES glob)
+#FILE(GLOB QML_SOURCES plugins/*.qml)
+# FIXME why did i add this?
+#ADD_CUSTOM_TARGET(plugins SOURCES ${QML_SOURCES})
 
 include_directories(${Qt5Gui_INCLUDE_DIRS})
 
-target_link_libraries(f1overlay       PRIVATE ${LINUX_LINK_QT} python2.7 overlay)
-target_link_libraries(overlay     PRIVATE Qt5::Gui python2.7 )
+#target_link_libraries(f1overlay       PRIVATE ${LINUX_LINK_QT} python2.7 overlay)
+#target_link_libraries(overlay     PRIVATE Qt5::Gui python2.7 )
+target_link_libraries(qmloverlay     PRIVATE Qt5::Core Qt5::Qml Qt5::Quick Qt5::Gui Qt5::Widgets python2.7 )
+target_link_libraries(tests     PRIVATE Qt5::Core Qt5::Qml Qt5::Quick Qt5::Gui  python2.7 )
+
 
 configure_file(overlay.py overlay.py COPYONLY)
 configure_file(f1_2019_telemetry_reader.py  f1_2019_telemetry_reader.py COPYONLY)
 
 install(FILES overlay.py f1_2019_telemetry_reader.py DESTINATION bin)
-install(TARGETS f1overlay DESTINATION bin)
-install(TARGETS overlay DESTINATION bin)
+#install(TARGETS f1overlay DESTINATION bin)
+#install(TARGETS overlay DESTINATION bin)
 
 set(CPACK_SOURCE_GENERATOR "ZIP")
 #set(CPACK_OUTPUT_FILE_PREFIX "")

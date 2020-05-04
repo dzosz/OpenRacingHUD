@@ -1,0 +1,3 @@
+module plugins
+Telemetry 1.0 lib/message.qml
+DataReader 1.0 lib/data_reader.qml

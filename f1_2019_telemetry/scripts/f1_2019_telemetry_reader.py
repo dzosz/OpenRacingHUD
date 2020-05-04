@@ -2,6 +2,7 @@ import threading
 import socket
 import struct
 import time
+import json
 
 def singleton(class_):
     instances = {}
@@ -38,6 +39,20 @@ class DataReceiver:
     # data is updated inplace, no need to get new data on each iteration
     def getData(self):
         return self._data
+
+    def getJsonData(self):
+        flatData = dict(self._data['Motion'].__dict__)
+        flatData.update(self._data['Telemetry'].__dict__)
+
+        data = {key: value for key,value in flatData.items() if isinstance(value, int) or isinstance(value, float)}
+
+        for key, tupleValues in flatData.items():
+            if isinstance(tupleValues, tuple):
+                data[key] = list(tupleValues)
+
+        data['aaa'] = {'a':100, 'b':'asd'}
+        ret = json.dumps(data)
+        return ret
 
     def isConnected(self):
         return self._connected

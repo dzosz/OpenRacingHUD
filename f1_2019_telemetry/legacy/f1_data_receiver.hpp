@@ -7,8 +7,9 @@ struct F1DataReceiver
 {
     F1DataReceiver();
     ~F1DataReceiver();
-    void start();
-    void stop();
+    void        start();
+    void        stop();
+    std::string getData();
 
     void setWheelCallback(std::function<void(double, double, double, double)>);
 };

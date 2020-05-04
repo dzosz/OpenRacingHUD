@@ -32,6 +32,7 @@ static std::string receiverStopFunc     = "stop";
 static std::string receiverName         = "DataReceiver";
 static std::string parserName           = "F12019Parser";
 static std::string receiverCallbackFunc = "register";
+static std::string getDataFunc          = "getJsonData";
 
 static PyObject*      receiver;
 static PyThreadState* _save;
@@ -120,6 +121,7 @@ F1DataReceiver::F1DataReceiver()
 
     receiver = PyObject_CallObject(receiverCls, args);
     assert(receiver);
+    _save = PyEval_SaveThread();
 }
 F1DataReceiver::~F1DataReceiver()
 {
@@ -128,12 +130,28 @@ F1DataReceiver::~F1DataReceiver()
 }
 void F1DataReceiver::start()
 {
+    PyEval_RestoreThread(_save);
     setDefaultCallback(receiver);
 
     auto called = PyObject_CallMethod(receiver, (char*)receiverStartFunc.c_str(), NULL);
     assert(called);
 
     _save = PyEval_SaveThread();
+    std::cerr << "started" << std::endl;
+}
+
+std::string F1DataReceiver::getData()
+{
+    PyEval_RestoreThread(_save);
+    auto called = PyObject_CallMethod(receiver, (char*)getDataFunc.c_str(), NULL);
+    assert(called);
+    assert(PyString_Check(called));
+    auto json = std::string(PyString_AsString(called));
+    // TODO decrement reference?
+    // Py_DECREF(called);
+    _save = PyEval_SaveThread();
+
+    return json;
 }
 
 void F1DataReceiver::setWheelCallback(std::function<void(double, double, double, double)> cb)
