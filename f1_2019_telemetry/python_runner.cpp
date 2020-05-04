@@ -52,7 +52,7 @@ PythonRunner::PythonRunner()
 
     assert(Py_IsInitialized());
 
-    PyRun_SimpleString("import sys;sys.path.append('..'); sys.path.append('scripts/')");
+    PyRun_SimpleString("import sys; sys.path.append('scripts/')");
 
     // PySys_SetArgv(1, &argv);
     _save = PyEval_SaveThread();

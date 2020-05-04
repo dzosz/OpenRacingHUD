@@ -50,7 +50,6 @@ class DataReceiver:
             if isinstance(tupleValues, tuple):
                 data[key] = list(tupleValues)
 
-        data['aaa'] = {'a':100, 'b':'asd'}
         ret = json.dumps(data)
         return ret
 

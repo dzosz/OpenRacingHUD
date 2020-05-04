@@ -11,6 +11,9 @@ set(CMAKE_AUTORCC ON)
 set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
+include(CTest)
+enable_testing()
+
 if (WIN32 OR MINGW)
     # cross compiling settings
     set(SYSROOT "/home/tommy/apps/mxe/usr")
@@ -54,14 +57,6 @@ SET(CMAKE_INSTALL_PREFIX ${CMAKE_SOURCE_DIR})
 find_package(Qt5 COMPONENTS Widgets Quick Gui Core Qml REQUIRED)
 find_package(Qt5QuickCompiler)
 
-#qtquick_compiler_add_resources(RESOURCES example.qrc)
-#qt5_use_modules(myapp Quick Core Network)
-SET(sources
-    f1_data_receiver.cpp
-    #${CONDITIONAL_WIN32_SOURCES}
-)
-
-
 #add_executable(f1overlay
 #    #${CONDITIONAL_WIN32_FLAG}
 #    ${sources}
@@ -77,7 +72,6 @@ add_executable(qmloverlay
 )
 
 add_executable(tests
-    #${CONDITIONAL_WIN32_FLAG}
     tests/python_runner_tests.cpp
     python_runner.cpp
 )
@@ -89,26 +83,36 @@ add_executable(tests
 #    overlay_interface.cpp
 #)
 
-# fake target
-#set(QML_SOURCES glob)
-#FILE(GLOB QML_SOURCES plugins/*.qml)
-# FIXME why did i add this?
-#ADD_CUSTOM_TARGET(plugins SOURCES ${QML_SOURCES})
+# fake target - show plugins in IDE
+FILE(GLOB_RECURSE QML_SOURCES qml/*.qml)
+ADD_CUSTOM_TARGET(plugins SOURCES ${QML_SOURCES})
+FILE(GLOB_RECURSE PYTHON_SCRIPTS scripts/*.py)
+ADD_CUSTOM_TARGET(scripts SOURCES ${PYTHON_SCRIPTS})
+
+add_custom_target(copy-qml-files ALL
+    COMMAND ${CMAKE_COMMAND} -E copy_directory ${CMAKE_SOURCE_DIR}/qml ${CMAKE_BINARY_DIR}/qml
+    DEPENDS ${MY_TARGET})
+
+add_custom_target(copy-scripts ALL
+    COMMAND ${CMAKE_COMMAND} -E copy_directory ${CMAKE_SOURCE_DIR}/scripts ${CMAKE_BINARY_DIR}/scripts
+    DEPENDS ${MY_TARGET})
 
 include_directories(${Qt5Gui_INCLUDE_DIRS})
 
 #target_link_libraries(f1overlay       PRIVATE ${LINUX_LINK_QT} python2.7 overlay)
 #target_link_libraries(overlay     PRIVATE Qt5::Gui python2.7 )
 target_link_libraries(qmloverlay     PRIVATE Qt5::Core Qt5::Qml Qt5::Quick Qt5::Gui Qt5::Widgets python2.7 )
-target_link_libraries(tests     PRIVATE Qt5::Core Qt5::Qml Qt5::Quick Qt5::Gui  python2.7 )
+target_link_libraries(tests     PRIVATE Qt5::Core Qt5::Qml Qt5::Quick Qt5::Gui Qt5::Widgets python2.7 )
+add_test(alltests tests)
 
 
-configure_file(overlay.py overlay.py COPYONLY)
-configure_file(f1_2019_telemetry_reader.py  f1_2019_telemetry_reader.py COPYONLY)
+#configure_file(overlay.py overlay.py COPYONLY)
+#configure_file(f1_2019_telemetry_reader.py  f1_2019_telemetry_reader.py COPYONLY)
 
-install(FILES overlay.py f1_2019_telemetry_reader.py DESTINATION bin)
-#install(TARGETS f1overlay DESTINATION bin)
-#install(TARGETS overlay DESTINATION bin)
+#install(FILES overlay.py f1_2019_telemetry_reader.py DESTINATION bin)
+install(TARGETS qmloverlay DESTINATION bin)
+install(DIRECTORY scripts DESTINATION bin)
+install(DIRECTORY qml DESTINATION bin)
 
 set(CPACK_SOURCE_GENERATOR "ZIP")
 #set(CPACK_OUTPUT_FILE_PREFIX "")

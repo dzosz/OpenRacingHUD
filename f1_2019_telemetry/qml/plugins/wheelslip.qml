@@ -1,47 +1,8 @@
 import QtQuick 2.0
 
 import "../lib"
-/*
-Item {
-    Telemetry {
 
-    }
-
-    Column {
-        width: 200; height: 200
-
-        TextInput { id: myTextInput; text: "Hello World" }
-
-        Text { text: myTextInput.text }
-    }
-
-
-}
-Loader {
-     source: "changing.qml"
-}
-Rectangle {
-    property int circleRadius
-    id : wheel
-     //width: parent.width<parent.height?parent.width:parent.height
-     width: circleRadius
-     height: circleRadius
-     color: "green"
-     border.color: "black"
-     border.width: 1
-     opacity: 0.5
-     radius: circleRadius // changes rectangle to circle
-     Text {
-          //anchor.fill = parent
-          color: "black"
-          text: "0"
-     }
-}
-*/
 import QtQuick.Window 2.2
-
-import "../lib"
-
 
 Window {
     flags:  Qt.FramelessWindowHint | Qt.WA_TranslucentBackground |  Qt.WindowStaysOnTopHint
@@ -109,7 +70,7 @@ Window {
          //width: parent.width<parent.height?parent.width:parent.height
          width: circleRadius
          height: circleRadius
-         color: "green"
+         color: Qt.hsva(120/360, 1, 1, 0.5);
          border.color: "black"
          border.width: 1
          opacity: 0.5
@@ -128,7 +89,7 @@ Window {
          height: circleRadius
          x: 2 * circleRadius
          radius: circleRadius
-         color: "green"
+         color: Qt.hsva(120/360, 1, 1, 0.5);
          border.color: "black"
          border.width: 1
          opacity: 0.5
@@ -145,7 +106,7 @@ Window {
          width: circleRadius
          height: circleRadius
          y: 2.5 * circleRadius
-         color: "green"
+         color: Qt.hsva(120/360, 1, 1, 0.5);
          border.color: "black"
          border.width: 1
          opacity: 0.5
@@ -165,7 +126,7 @@ Window {
          height: circleRadius
          x: 2 * circleRadius
          y: 2.5 * circleRadius
-         color: "green"
+         color: Qt.hsva(120/360, 1, 1, 0.5);
          border.color: "black"
          border.width: 1
          opacity: 0.5
