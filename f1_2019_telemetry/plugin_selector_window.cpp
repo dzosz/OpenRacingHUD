@@ -254,21 +254,21 @@ void PluginSelectorWindow::createGUI()
     pluginsGroup->setLayout(gameParsersGrid);
     this->setCentralWidget(tabWidget);
 
-    int i = 0;
+    int grindIndex = 0;
     for (const auto& p : this->qmlPlugins)
     {
         auto& plugin = p.first;
         auto& object = p.second;
         qDebug() << "Plugin:" << plugin;
 
-        pluginGrid->addWidget(new QLabel(plugin), i, 0);
-        pluginGrid->addWidget(new QLabel(""), i, 1);
+        pluginGrid->addWidget(new QLabel(plugin), grindIndex, 0);
+        pluginGrid->addWidget(new QLabel(""), grindIndex, 1);
 
         auto start = new QPushButton("start");
-        pluginGrid->addWidget(start, i, 2);
+        pluginGrid->addWidget(start, grindIndex, 2);
 
         auto stop = new QPushButton("stop");
-        pluginGrid->addWidget(stop, i, 3);
+        pluginGrid->addWidget(stop, grindIndex, 3);
 
         auto meta = object->metaObject();
 
@@ -295,18 +295,18 @@ void PluginSelectorWindow::createGUI()
             stop->setPalette(pal);
         });
 
-        ++i;
+        ++grindIndex;
     }
 
-    i = 0;
+    grindIndex = 0;
     for (const auto& p : this->gameParsers)
     {
         auto& plugin = p.first;
         auto& object = p.second;
         qDebug() << "Game:" << plugin;
 
-        gameParsersGrid->addWidget(new QLabel(plugin), i, 0);
-        gameParsersGrid->addWidget(new QLabel(""), i, 1);
+        gameParsersGrid->addWidget(new QLabel(plugin), grindIndex, 0);
+        gameParsersGrid->addWidget(new QLabel(""), grindIndex, 1);
 
         auto start = new QPushButton("start");
         auto stop  = new QPushButton("stop");
@@ -319,7 +319,7 @@ void PluginSelectorWindow::createGUI()
 
         if (meta->indexOfMethod("start()") != -1)
         {
-            gameParsersGrid->addWidget(start, i, 2);
+            gameParsersGrid->addWidget(start, grindIndex, 2);
             this->connect(start, &QPushButton::clicked, this, [=] {
                 this->gamePluginEvent(plugin, "Start");
                 QPalette pal;
@@ -331,7 +331,7 @@ void PluginSelectorWindow::createGUI()
 
         if (meta->indexOfMethod("stop()") != -1)
         {
-            gameParsersGrid->addWidget(stop, i, 3);
+            gameParsersGrid->addWidget(stop, grindIndex, 3);
             this->connect(stop, &QPushButton::clicked, this, [=] {
                 this->gamePluginEvent(plugin, "Stop");
                 QPalette pal;
@@ -340,6 +340,7 @@ void PluginSelectorWindow::createGUI()
                 stop->setPalette(pal);
             });
         }
+        ++grindIndex;
     }
 }
 
@@ -390,11 +391,7 @@ void PluginSelectorWindow::refreshData()
             valueHolder->setText(stringified);
         }
     }
-    // my_map = json_document.toVariant();
     /*
-    QVariantMap map;
-    map.insert("language", "QML");
-    map.insert("released", QDate(2010, 9, 21));
 
 qDebug() << "Property value:" << QQmlProperty::read(object, "someNumber").toInt();
 QQmlProperty::write(object, "someNumber", 5000);
@@ -402,22 +399,10 @@ QQmlProperty::write(object, "someNumber", 5000);
 qDebug() << "Property value:" << object->property("someNumber").toInt();
 object->setProperty("someNumber", 100);
 
-    QVariantMap map;
-    map.insert("whe elSlip", 5);
-
     QObject* childObject = object->findChild<QObject*>("telemetry");
     assert(childObject);
     qDebug() << "Property value:" << childObject->property("wheelSlip");
 
-     childObject->setProperty("wheelSlip", 100);
-     qDebug() << "Property value:" << QQmlProperty::read(childObject, "someNumber").toInt();
-
-    std::string content = receiver.getData();
-    auto        doc     = QJsonDocument::fromJson(content.c_str());
-    auto        data    = doc.object().toVariantMap();
-    */
-
-    /*
     for (auto it : data.toStdMap())
     {
         auto prop = childObject->property(it.first.toStdString().c_str());

@@ -58,8 +58,7 @@ class r3e_shared(Structure):
 
 class RaceRoomData(object):
     def __init__(self):
-        R3E_SHARED_MEMORY_NAME = "$R3"
-
+        pass
 
     def getJsonData(self):
         data = r3e_shared.from_buffer(self.buff)
@@ -72,4 +71,5 @@ class RaceRoomData(object):
         return json.dumps(data)
 
     def start(self):
-                self.buff = mmap.mmap(-1, sizeof(r3e_shared), R3E_SHARED_MEMORY_NAME)
+        R3E_SHARED_MEMORY_NAME = "$R3"
+        self.buff = mmap.mmap(-1, sizeof(r3e_shared), R3E_SHARED_MEMORY_NAME)
