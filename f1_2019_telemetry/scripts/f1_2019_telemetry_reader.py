@@ -26,7 +26,6 @@ class DataReceiver:
 
     def start(self):
         if self._thread:
-            # jesli juz wystartowany to nic nie robimy
             return
         self._thread = threading.Thread(target=self._runServer)
         self._thread.daemon = True
@@ -50,8 +49,7 @@ class DataReceiver:
             if isinstance(tupleValues, tuple):
                 data[key] = list(tupleValues)
 
-        ret = json.dumps(data)
-        return ret
+        return json.dumps(data)
 
     def isConnected(self):
         return self._connected
