@@ -5,6 +5,6 @@ DataReader {
     import_filename : "raceroom_telemetry_reader.py";
     init_script : "r3ercv = raceroom_telemetry_reader.RaceRoomData()";
     start_script : "r3ercv.start()";
-    stop_script : "";
+    stop_script : "r3ercv.stop()";
     get_data_script : "r3ercv.getJsonData()"
 }
