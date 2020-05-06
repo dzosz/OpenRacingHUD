@@ -302,21 +302,17 @@ void PluginSelectorWindow::createGUI()
         this->connect(start, &QPushButton::clicked, this, [=] {
             this->pluginEvent(plugin, "Start");
             QPalette pal;
-            stop->setAutoFillBackground(true);
             stop->setPalette(pal);
-            pal.setColor(QPalette::Button, QColor(Qt::green));
-            start->setAutoFillBackground(true);
-            start->setPalette(pal);
+            QString s("background: Green;");
+            start->setStyleSheet(s);
         });
 
         this->connect(stop, &QPushButton::clicked, this, [=] {
             this->pluginEvent(plugin, "Stop");
             QPalette pal;
-            start->setAutoFillBackground(true);
             start->setPalette(pal);
-            pal.setColor(QPalette::Button, QColor(Qt::green));
-            stop->setAutoFillBackground(true);
-            stop->setPalette(pal);
+            QString s("background: Green;");
+            stop->setStyleSheet(s);
         });
 
         ++grindIndex;
