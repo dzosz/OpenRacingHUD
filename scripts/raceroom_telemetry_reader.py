@@ -1,6 +1,7 @@
 from ctypes import Structure, c_int, c_float, c_double, c_char, sizeof, Array
 import mmap
 import json
+import time
 
 '''
 class r3e_vec3_f64(Structure):
@@ -312,6 +313,7 @@ class RaceRoomData(object):
     def start(self):
         if not self.buff:
             R3E_SHARED_MEMORY_NAME = "$R3E"  
+            print 'RaceRoomData::start() reading shared memory:', R3E_SHARED_MEMORY_NAME
             self.buff = mmap.mmap(-1, sizeof(r3e_shared), R3E_SHARED_MEMORY_NAME, access=mmap.ACCESS_READ)
         
     def stop(self):
@@ -334,4 +336,10 @@ class RaceRoomData(object):
     def _convertData(self, data):
         data['wheelSlip'] = [int((1-x)*100) for x in data['tire_grip']]
             
-        
+# EXAMPLE ######################################################################
+if __name__ == '__main__':
+    r3reader = RaceRoomData()
+    r3reader.start()
+    while True:
+        print 'R3E data:', r3reader.getJsonData()
+        time.sleep(1)
