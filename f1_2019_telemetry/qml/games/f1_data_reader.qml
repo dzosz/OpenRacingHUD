@@ -1,4 +1,3 @@
-    import QtQuick 2.0
 import "../lib"
 
 DataReader {

@@ -3,9 +3,7 @@
 
 #include <python_runner.hpp>
 
-#include <QBackingStore>
 #include <QMainWindow>
-#include <QMap>
 #include <QQmlApplicationEngine>
 #include <map>
 

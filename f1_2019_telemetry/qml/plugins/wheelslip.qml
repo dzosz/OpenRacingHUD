@@ -1,8 +1,8 @@
-import QtQuick 2.0
+import QtQuick 2.12
 
 import "../lib"
 
-import QtQuick.Window 2.2
+import QtQuick.Window 2.12
 
 Window {
     flags:  Qt.FramelessWindowHint | Qt.WA_TranslucentBackground |  Qt.WindowStaysOnTopHint

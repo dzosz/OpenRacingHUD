@@ -20,6 +20,8 @@
 #include <QVBoxLayout>
 #include <algorithm>
 
+#include <iostream>
+
 namespace
 {
 void jsonToString(QString& stringified, const QJsonValue& value)
@@ -38,7 +40,7 @@ void jsonToString(QString& stringified, const QJsonValue& value)
         case QJsonValue::Array:
         {
             auto arr = value.toArray();
-            std::accumulate(arr.begin(), arr.end(), stringified, [&](auto&& a, auto&& b) {
+            std::accumulate(arr.begin(), arr.end(), stringified, [&](auto&&, auto&& b) {
                 if (!stringified.isEmpty())
                 {
                     stringified += ", ";
@@ -161,7 +163,8 @@ void PluginSelectorWindow::findPlugins()
     {
         // plugins
         auto directory = QDir(QApplication::applicationDirPath());
-        auto ret       = directory.cd("qml");
+
+        auto ret = directory.cd("qml");
         assert(ret);
         ret = directory.cd("plugins");
 
@@ -170,8 +173,16 @@ void PluginSelectorWindow::findPlugins()
         for (const auto& plugin : fileList)
         {
             qDebug() << "-" << plugin.fileName();
+
             QQmlComponent component(&engine, plugin.absoluteFilePath());
             QObject*      object = component.create();
+
+            /*
+                  auto view = new QQuickView();
+                  view->setSource(QUrl::fromLocalFile(plugin.absoluteFilePath()));
+                  // view.show();
+                  auto* object = view;
+            */
 
             if (!object)
             {
@@ -180,6 +191,7 @@ void PluginSelectorWindow::findPlugins()
             else
             {
                 auto* item = qobject_cast<QQuickWindow*>(object);
+                // auto* item = object;
 
                 if (!item)
                 {
@@ -211,6 +223,7 @@ void PluginSelectorWindow::findPlugins()
 
             if (!object)
             {
+                int errs = component.errors().size();
                 qDebug() << "cannot load " << plugin << "\n" << component.errors();
             }
             else
@@ -248,10 +261,11 @@ void PluginSelectorWindow::createGUI()
     pluginWidget->setLayout(pluginLayout);
 
     auto pluginGrid = new QGridLayout();
-    receiverGroup->setLayout(pluginGrid);
+    pluginsGroup->setLayout(pluginGrid);
 
     auto gameParsersGrid = new QGridLayout();
-    pluginsGroup->setLayout(gameParsersGrid);
+
+    receiverGroup->setLayout(gameParsersGrid);
     this->setCentralWidget(tabWidget);
 
     int grindIndex = 0;
@@ -270,8 +284,7 @@ void PluginSelectorWindow::createGUI()
         auto stop = new QPushButton("stop");
         pluginGrid->addWidget(stop, grindIndex, 3);
 
-        auto meta = object->metaObject();
-
+        // auto meta = object->metaObject();
         //        for (int i = meta->methodOffset(); i < meta->methodCount(); ++i)
         //            qDebug() << meta->method(i).methodSignature();
 
@@ -349,9 +362,8 @@ void PluginSelectorWindow::refreshData()
     if (startedGameParser)
     {
         QString data;
-        auto    ret = QMetaObject::invokeMethod(startedGameParser, "getJsonData",
-                                             Q_RETURN_ARG(QString, data));
-        auto    doc = QJsonDocument::fromJson(data.toLatin1()).object();
+        QMetaObject::invokeMethod(startedGameParser, "getJsonData", Q_RETURN_ARG(QString, data));
+        auto doc = QJsonDocument::fromJson(data.toLatin1()).object();
         // auto    dataMap = doc.object().toVariantMap();
 
         for (auto& plugin : qmlPlugins)

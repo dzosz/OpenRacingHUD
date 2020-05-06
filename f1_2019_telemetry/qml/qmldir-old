@@ -1,3 +1,4 @@
 module plugins
-Telemetry 1.0 lib/message.qml
-DataReader 1.0 lib/data_reader.qml
+Telemetry 1.0 lib/Telemetry.qml
+DataReader 1.0 lib/DataReader.qml
+f1_data_reader 1.0 games/f1_data_reader.qml

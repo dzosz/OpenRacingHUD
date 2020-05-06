@@ -16,11 +16,9 @@ enable_testing()
 
 if (WIN32 OR MINGW)
     # cross compiling settings
-    set(SYSROOT "/home/tommy/apps/mxe/usr")
+    # manually create symlink to your MXE/usr dir
+    set(SYSROOT "${CMAKE_SOURCE_DIR}/usr")
     set(ROOT_PATH "${SYSROOT}/x86_64-w64-mingw32.static")
-
-    #set(SYSROOT "${CMAKE_SOURCE_DIRECTORY}")
-    #set(ROOT_PATH "${SYSROOT}/usr/x86_64-w64-mingw32.static") # todo create with symlink?
 
     set(CMAKE_FIND_ROOT_PATH "${ROOT_PATH}")
     SET(CMAKE_SYSROOT "${SYSROOT}")
@@ -42,46 +40,40 @@ if (WIN32 OR MINGW)
     SET(CMAKE_SHARED_LIBRARY_PREFIX "")
     SET(CMAKE_EXECUTABLE_SUFFIX .exe)
     set(CPACK_SYSTEM_NAME "Windows")
-    set(CONDITIONAL_WIN32_FLAG WIN32)
     set(CONDITIONAL_WIN32_SOURCES asettosharedmemoryreader.cpp)
+    # windows static library issue workaround for 'Module "QtQuick" plugin "qtquick2plugin" not found'
+    find_library(QtQuick qtquick2plugin PATHS ${ROOT_PATH}/qt5/qml/QtQuick.2/)
+    find_library(QtQuickQmlWorker Qt5QmlWorkerScript PATHS ${ROOT_PATH}/qt5/lib/)
+    find_library(QtQuickWindow windowplugin PATHS ${ROOT_PATH}/qt5/qml/QtQuick/Window.2/)
+    #find_library(QUICK_PLUGIN qtquick2plugin qtquickcontrols2plugin qquicklayoutsplugin qmlsettingsplugin widgetsplugin PATHS ${ROOT_PATH}/qt5/qml/QtQuick.2/ ${ROOT_PATH}/qt5/qml/QtQuick/ ${ROOT_PATH}/qt5/qml/Qt/labs/settings/ ${ROOT_PATH}/qt5/qml/QtQuick/PrivateWidgets/)
+    # -lqxcb -lqtquick2plugin -lqtquickcontrolsplugin -ldialogplugin -lqquicklayoutsplugin -lwindowplugin -lqmlsettingsplugin -lwidgetsplugin -lqxcb-glx-integration -lqevdevkeyboardplugin -lqevdevmouseplugin"
 elseif (UNIX)
     # dont strip rpath on installed libs
     set(CMAKE_INSTALL_RPATH_USE_LINK_PATH TRUE)
-    set(LINUX_LINK_QT Qt5::Gui)
 endif ()
 
-set(QML_IMPORT_PATH ${CMAKE_SOURCE_DIR}/plugins CACHE STRING "" FORCE)
+# IDE competion
+set(QML_IMPORT_PATH ${CMAKE_SOURCE_DIR}/qml CACHE STRING "" FORCE)
 SET(CMAKE_INSTALL_PREFIX ${CMAKE_SOURCE_DIR})
 
 #find_package(Python2 COMPONENTS Development REQUIRED)
-find_package(Qt5 COMPONENTS Widgets Quick Gui Core Qml REQUIRED)
-find_package(Qt5QuickCompiler)
-
-#add_executable(f1overlay
-#    #${CONDITIONAL_WIN32_FLAG}
-#    ${sources}
-#    main.cpp
-#)
+find_package(Qt5 COMPONENTS Widgets Quick Core Qml REQUIRED)
 
 add_executable(qmloverlay
-    #${CONDITIONAL_WIN32_FLAG}
     mainqml.cpp
     python_runner.cpp
     plugin_selector_window.cpp
-
 )
+
+#add_custom_target(copy-mingw-shared-libs ALL
+#    COMMAND bash -c "export LDD=\"${ROOT_PATH}/bin/peldd.exe\"; export TARGET_BIN=\"$<TARGET_FILE:qmloverlay>\"; export SEARCH_DIR=\"${CMAKE_SOURCE_DIR}\" ; export TARGET_DIR=\"${CMAKE_BINARY_DIR}\"; bash ${CMAKE_SOURCE_DIR}/scripts/copy_mingw_deps.sh; export TARGET_DIR=\"${CMAKE_SOURCE_DIR}/bin\"; bash ${CMAKE_SOURCE_DIR}/scripts/copy_mingw_deps.sh"
+#    DEPENDS qmloverlay
+#    VERBATIM)
 
 add_executable(tests
     tests/python_runner_tests.cpp
     python_runner.cpp
 )
-
-
-#add_library(overlay SHARED
-#    wheelslipwindow.cpp
-#    plugin_selector_window.cpp
-#    overlay_interface.cpp
-#)
 
 # fake target - show plugins in IDE
 FILE(GLOB_RECURSE QML_SOURCES qml/*.qml)
@@ -99,17 +91,10 @@ add_custom_target(copy-scripts ALL
 
 include_directories(${Qt5Gui_INCLUDE_DIRS})
 
-#target_link_libraries(f1overlay       PRIVATE ${LINUX_LINK_QT} python2.7 overlay)
-#target_link_libraries(overlay     PRIVATE Qt5::Gui python2.7 )
-target_link_libraries(qmloverlay     PRIVATE Qt5::Core Qt5::Qml Qt5::Quick Qt5::Gui Qt5::Widgets python2.7 )
-target_link_libraries(tests     PRIVATE Qt5::Core Qt5::Qml Qt5::Quick Qt5::Gui Qt5::Widgets python2.7 )
+target_link_libraries(qmloverlay     PRIVATE Qt5::Core Qt5::Qml Qt5::Quick Qt5::Widgets Qt5::QmlModels python2.7  ${QtQuick} ${QtQuickWindow} ${QtQuickQmlWorker})
+target_link_libraries(tests     PRIVATE Qt5::Core Qt5::Qml Qt5::Quick Qt5::Widgets python2.7 )
 add_test(alltests tests)
 
-
-#configure_file(overlay.py overlay.py COPYONLY)
-#configure_file(f1_2019_telemetry_reader.py  f1_2019_telemetry_reader.py COPYONLY)
-
-#install(FILES overlay.py f1_2019_telemetry_reader.py DESTINATION bin)
 install(TARGETS qmloverlay DESTINATION bin)
 install(DIRECTORY scripts DESTINATION bin)
 install(DIRECTORY qml DESTINATION bin)
