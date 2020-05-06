@@ -68,6 +68,12 @@ void jsonToString(QString& stringified, const QJsonValue& value)
             }
             break;
         }
+        default:
+        {
+            std::string err =
+                "jsonToString case not handled: QJsonValue::" + std::to_string(value.type());
+            assert(throw std::runtime_error(err));
+        }
     }
 }
 }  // namespace
@@ -228,7 +234,6 @@ void PluginSelectorWindow::findPlugins()
 
             if (!object)
             {
-                int errs = component.errors().size();
                 qDebug() << "cannot load " << plugin << "\n" << component.errors();
             }
             else
@@ -295,23 +300,21 @@ void PluginSelectorWindow::createGUI()
         //        for (int i = meta->methodOffset(); i < meta->methodCount(); ++i)
         //            qDebug() << meta->method(i).methodSignature();
 
-        QPalette pal;
-        pal.setColor(QPalette::Button, QColor(Qt::green));
-        stop->setPalette(pal);
+        stop->setStyleSheet("background: Green;");
 
         this->connect(start, &QPushButton::clicked, this, [=] {
             this->pluginEvent(plugin, "Start");
-            QPalette pal;
-            stop->setPalette(pal);
-            QString s("background: Green;");
+            QString s;
+            stop->setStyleSheet(s);
+            s = "background: Green;";
             start->setStyleSheet(s);
         });
 
         this->connect(stop, &QPushButton::clicked, this, [=] {
             this->pluginEvent(plugin, "Stop");
-            QPalette pal;
-            start->setPalette(pal);
-            QString s("background: Green;");
+            QString s;
+            start->setStyleSheet(s);
+            s = "background: Green;";
             stop->setStyleSheet(s);
         });
 
@@ -331,9 +334,7 @@ void PluginSelectorWindow::createGUI()
         auto start = new QPushButton("start");
         auto stop  = new QPushButton("stop");
 
-        QPalette pal;
-        pal.setColor(QPalette::Button, QColor(Qt::green));
-        stop->setPalette(pal);
+        stop->setStyleSheet("background: Green;");
 
         auto meta = object->metaObject();
 
@@ -342,10 +343,10 @@ void PluginSelectorWindow::createGUI()
             gameParsersGrid->addWidget(start, grindIndex, 2);
             this->connect(start, &QPushButton::clicked, this, [=] {
                 this->gamePluginEvent(plugin, "Start");
-                QPalette pal;
-                stop->setPalette(pal);
-                pal.setColor(QPalette::Button, QColor(Qt::green));
-                start->setPalette(pal);
+                QString s;
+                stop->setStyleSheet(s);
+                s = "background: Green;";
+                start->setStyleSheet(s);
             });
         }
 
@@ -354,10 +355,10 @@ void PluginSelectorWindow::createGUI()
             gameParsersGrid->addWidget(stop, grindIndex, 3);
             this->connect(stop, &QPushButton::clicked, this, [=] {
                 this->gamePluginEvent(plugin, "Stop");
-                QPalette pal;
-                start->setPalette(pal);
-                pal.setColor(QPalette::Button, QColor(Qt::green));
-                stop->setPalette(pal);
+                QString s;
+                start->setStyleSheet(s);
+                s = "background: Green;";
+                stop->setStyleSheet(s);
             });
         }
         ++grindIndex;
@@ -387,12 +388,18 @@ void PluginSelectorWindow::refreshData()
         // update gui once per sec
         if (!(iteration++ % UPDATES_PER_SEC))
         {
-            // qDebug() << "update gui: " << doc;
+            // cleanup colors, any changed cells were marked as grey previously
+            static QBrush defaultBackground;
+            for (auto& entry : dataEntries)
+            {
+                entry.second->setBackground(defaultBackground);
+            }
+            // qDebug() << "PluginSelectorWindow::refreshData update gui with: " << doc;
             for (auto it = doc.begin(); it != doc.end(); ++it)
             {
                 auto key   = it.key();
                 auto posIt = dataEntries.find(key);
-                if (posIt == dataEntries.end())  // rare case of inserting non-existing key
+                if (posIt == dataEntries.end())  // rare case, inserting new key
                 {
                     auto newPos = table->rowCount();
                     table->insertRow(newPos);
@@ -405,13 +412,20 @@ void PluginSelectorWindow::refreshData()
                     dataEntries.insert({key, valueHolder});
                     table->setItem(newPos, 0, keyHolder);
                     table->setItem(newPos, 1, valueHolder);
+
+                    defaultBackground = valueHolder->background();
                 }
                 QString stringified;
                 auto    value = it.value();
                 jsonToString(stringified, value);
                 auto valueHolder = dataEntries.find(key)->second;
                 assert(valueHolder);
-                valueHolder->setText(stringified);
+
+                if (valueHolder->text() != stringified)
+                {
+                    valueHolder->setBackground(QColor(Qt::gray));
+                    valueHolder->setText(stringified);
+                }
             }
         }
     }
