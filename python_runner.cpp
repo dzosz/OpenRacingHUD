@@ -65,7 +65,7 @@ PythonRunner::~PythonRunner()
 
 void PythonRunner::run(const QString& script)
 {
-    qDebug() << "PythonRunner::eval " << script;
+    qDebug() << "PythonRunner::run " << script;
     assert(!script.isEmpty());
     auto str = script.toStdString();
 
@@ -76,13 +76,13 @@ void PythonRunner::run(const QString& script)
     _save = PyEval_SaveThread();
     if (ret)
     {
-        throw std::runtime_error(std::string{"PythonRunner::eval failed on "} + str);
+        throw std::runtime_error(std::string{"PythonRunner::run failed on "} + str);
     }
 }
 
 QString PythonRunner::eval(const QString& script)
 {
-    qDebug() << "PythonRunner::run " << script;
+    // qDebug() << "PythonRunner::eval " << script;
     assert(!script.isEmpty());
     auto str = script.toStdString();
 
@@ -97,7 +97,7 @@ QString PythonRunner::eval(const QString& script)
     if (!ret)
     {
         _save = PyEval_SaveThread();
-        throw std::runtime_error(std::string{"PythonRunner::run failed on "} + str);
+        throw std::runtime_error(std::string{"PythonRunner::eval failed on "} + str);
     }
     else
     {

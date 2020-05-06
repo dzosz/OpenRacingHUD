@@ -40,24 +40,32 @@ if (WIN32 OR MINGW)
     SET(CMAKE_SHARED_LIBRARY_PREFIX "")
     SET(CMAKE_EXECUTABLE_SUFFIX .exe)
     set(CPACK_SYSTEM_NAME "Windows")
+
     # windows static library issue workaround for 'Module "QtQuick" plugin "qtquick2plugin" not found'
     find_library(QtQuick qtquick2plugin PATHS ${ROOT_PATH}/qt5/qml/QtQuick.2/)
     find_library(QtQuickQmlWorker Qt5QmlWorkerScript PATHS ${ROOT_PATH}/qt5/lib/)
-    find_library(QtQuickWindow windowplugin PATHS ${ROOT_PATH}/qt5/qml/QtQuick/Window.2/)
+    find_library(QtQuickWindow windowplugin PATHS ${ROOT_PATH}/qt5/qml/QtQuick/Window.2/)    
     SET(PLATFORM_SPECIFIC_LIBS ${QtQuick} ${QtQuickWindow} ${QtQuickQmlWorker})
+
+    set(Python2_LIBRARIES "${CMAKE_SOURCE_DIR}/dep/python2.7-mingw/lib64/libpython27.a")
+
+    # todo figure out why mingw mxe builds depend on python27.dll
+    set(Python2_WIN_SHARED_LIB "${CMAKE_SOURCE_DIR}/dep/python2.7-mingw/lib64/python27.dll")
+    install(FILES ${Python2_WIN_SHARED_LIB} DESTINATION bin)
+
     #find_library(QUICK_PLUGIN qtquick2plugin qtquickcontrols2plugin qquicklayoutsplugin qmlsettingsplugin widgetsplugin PATHS ${ROOT_PATH}/qt5/qml/QtQuick.2/ ${ROOT_PATH}/qt5/qml/QtQuick/ ${ROOT_PATH}/qt5/qml/Qt/labs/settings/ ${ROOT_PATH}/qt5/qml/QtQuick/PrivateWidgets/)
     # -lqxcb -lqtquick2plugin -lqtquickcontrolsplugin -ldialogplugin -lqquicklayoutsplugin -lwindowplugin -lqmlsettingsplugin -lwidgetsplugin -lqxcb-glx-integration -lqevdevkeyboardplugin -lqevdevmouseplugin"
 elseif (UNIX)
     # dont strip rpath on installed libs
     set(CMAKE_INSTALL_RPATH_USE_LINK_PATH TRUE)
     set(PLATFORM_SPECIFIC_LIBS "")
+    find_package(Python2 COMPONENTS Development REQUIRED)
 endif ()
 
-# IDE competion
+# IDE completion
 set(QML_IMPORT_PATH ${CMAKE_SOURCE_DIR}/qml CACHE STRING "" FORCE)
 SET(CMAKE_INSTALL_PREFIX ${CMAKE_SOURCE_DIR})
 
-#find_package(Python2 COMPONENTS Development REQUIRED)
 find_package(Qt5 COMPONENTS Widgets Quick Core Qml REQUIRED)
 
 add_executable(qmloverlay
@@ -82,23 +90,24 @@ ADD_CUSTOM_TARGET(plugins SOURCES ${QML_SOURCES})
 FILE(GLOB_RECURSE PYTHON_SCRIPTS scripts/*.py)
 ADD_CUSTOM_TARGET(scripts SOURCES ${PYTHON_SCRIPTS})
 
+# symlink dependencies
 add_custom_target(copy-qml-files ALL
-    COMMAND ${CMAKE_COMMAND} -E copy_directory ${CMAKE_SOURCE_DIR}/qml ${CMAKE_BINARY_DIR}/qml
+    COMMAND ${CMAKE_COMMAND} -E create_symlink ${CMAKE_SOURCE_DIR}/qml ${CMAKE_BINARY_DIR}/qml
     DEPENDS ${MY_TARGET})
 
 add_custom_target(copy-scripts ALL
-    COMMAND ${CMAKE_COMMAND} -E copy_directory ${CMAKE_SOURCE_DIR}/scripts ${CMAKE_BINARY_DIR}/scripts
+    COMMAND ${CMAKE_COMMAND} -E create_symlink ${CMAKE_SOURCE_DIR}/scripts ${CMAKE_BINARY_DIR}/scripts
     DEPENDS ${MY_TARGET})
 
 include_directories(${Qt5Gui_INCLUDE_DIRS})
 
-target_link_libraries(qmloverlay     PRIVATE Qt5::Core Qt5::Qml Qt5::Quick Qt5::Widgets Qt5::QmlModels python2.7 ${PLATFORM_SPECIFIC_LIBS})
-target_link_libraries(tests     PRIVATE Qt5::Core Qt5::Qml Qt5::Quick Qt5::Widgets python2.7 )
+target_link_libraries(qmloverlay     PRIVATE Qt5::Core Qt5::Qml Qt5::Quick Qt5::Widgets ${PLATFORM_SPECIFIC_LIBS} ${Python2_LIBRARIES})
+target_link_libraries(tests     PRIVATE Qt5::Core ${Python2_LIBRARIES})
 add_test(alltests tests)
 
 install(TARGETS qmloverlay DESTINATION bin)
-install(DIRECTORY scripts DESTINATION bin)
-install(DIRECTORY qml DESTINATION bin)
+install(DIRECTORY scripts DESTINATION bin FILES_MATCHING PATTERN "*.py")
+install(DIRECTORY qml DESTINATION bin FILES_MATCHING PATTERN "*.qml")
 
 set(CPACK_SOURCE_GENERATOR "ZIP")
 #set(CPACK_OUTPUT_FILE_PREFIX "")

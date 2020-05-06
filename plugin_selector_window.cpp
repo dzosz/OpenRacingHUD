@@ -22,6 +22,8 @@
 
 #include <iostream>
 
+static const size_t UPDATES_PER_SEC = 60;
+
 namespace
 {
 void jsonToString(QString& stringified, const QJsonValue& value)
@@ -75,6 +77,7 @@ PluginSelectorWindow::PluginSelectorWindow()
 {
     this->setWindowTitle("Plugin Selector");
     this->setAttribute(Qt::WA_DeleteOnClose);
+    this->resize(800, 900);
     engine.rootContext()->setContextProperty("pythonExecutor", &pyRunner);
 
     this->findPlugins();
@@ -82,7 +85,7 @@ PluginSelectorWindow::PluginSelectorWindow()
 
     timer = new QTimer();
     this->connect(timer, &QTimer::timeout, this, [&] { this->refreshData(); });
-    timer->start(1000 / 0.5);
+    timer->start(1000 / UPDATES_PER_SEC);
 }
 
 PluginSelectorWindow::~PluginSelectorWindow()
@@ -238,9 +241,9 @@ void PluginSelectorWindow::findPlugins()
 
 void PluginSelectorWindow::createGUI()
 {
-    auto tabWidget    = new QTabWidget;
-    auto pluginWidget = new QWidget;
-    auto pluginLayout = new QVBoxLayout();
+    auto tabWidget      = new QTabWidget;
+    auto pluginWidget   = new QWidget;
+    auto selectorLayout = new QVBoxLayout();
 
     table = new QTableWidget();
     table->setColumnCount(2);
@@ -252,15 +255,17 @@ void PluginSelectorWindow::createGUI()
     labels << "Key"
            << "Value";
     table->setHorizontalHeaderLabels(labels);
+    table->setWordWrap(true);
     tabWidget->addTab(pluginWidget, "Plugins");
     tabWidget->addTab(table, "Data");
 
     auto receiverGroup = new QGroupBox("Receivers");
     auto pluginsGroup  = new QGroupBox("Plugins");
 
-    pluginLayout->addWidget(receiverGroup);
-    pluginLayout->addWidget(pluginsGroup);
-    pluginWidget->setLayout(pluginLayout);
+    selectorLayout->addWidget(receiverGroup);
+    selectorLayout->addWidget(pluginsGroup);
+    selectorLayout->addStretch();
+    pluginWidget->setLayout(selectorLayout);
 
     auto pluginGrid = new QGridLayout();
     pluginsGroup->setLayout(pluginGrid);
@@ -297,16 +302,20 @@ void PluginSelectorWindow::createGUI()
         this->connect(start, &QPushButton::clicked, this, [=] {
             this->pluginEvent(plugin, "Start");
             QPalette pal;
+            stop->setAutoFillBackground(true);
             stop->setPalette(pal);
             pal.setColor(QPalette::Button, QColor(Qt::green));
+            start->setAutoFillBackground(true);
             start->setPalette(pal);
         });
 
         this->connect(stop, &QPushButton::clicked, this, [=] {
             this->pluginEvent(plugin, "Stop");
             QPalette pal;
+            start->setAutoFillBackground(true);
             start->setPalette(pal);
             pal.setColor(QPalette::Button, QColor(Qt::green));
+            stop->setAutoFillBackground(true);
             stop->setPalette(pal);
         });
 
@@ -378,31 +387,36 @@ void PluginSelectorWindow::refreshData()
             QMetaObject::invokeMethod(plugin.second, "onUpdate");
         }
 
-        // qDebug() << "got " << doc;
-        for (auto it = doc.begin(); it != doc.end(); ++it)
+        static size_t iteration;
+        // update gui once per sec
+        if (!(iteration++ % UPDATES_PER_SEC))
         {
-            auto key   = it.key();
-            auto posIt = dataEntries.find(key);
-            if (posIt == dataEntries.end())
+            // qDebug() << "update gui: " << doc;
+            for (auto it = doc.begin(); it != doc.end(); ++it)
             {
-                auto newPos = table->rowCount();
-                table->insertRow(newPos);
+                auto key   = it.key();
+                auto posIt = dataEntries.find(key);
+                if (posIt == dataEntries.end())  // rare case of inserting non-existing key
+                {
+                    auto newPos = table->rowCount();
+                    table->insertRow(newPos);
 
-                posIt            = dataEntries.find(key);
-                auto keyHolder   = new QTableWidgetItem(key);
-                auto valueHolder = new QTableWidgetItem();
-                keyHolder->setFlags(keyHolder->flags() ^ Qt::ItemIsEditable);
-                valueHolder->setFlags(valueHolder->flags() ^ Qt::ItemIsEditable);
-                dataEntries.insert({key, valueHolder});
-                table->setItem(newPos, 0, keyHolder);
-                table->setItem(newPos, 1, valueHolder);
+                    posIt            = dataEntries.find(key);
+                    auto keyHolder   = new QTableWidgetItem(key);
+                    auto valueHolder = new QTableWidgetItem();
+                    keyHolder->setFlags(keyHolder->flags() ^ Qt::ItemIsEditable);
+                    valueHolder->setFlags(valueHolder->flags() ^ Qt::ItemIsEditable);
+                    dataEntries.insert({key, valueHolder});
+                    table->setItem(newPos, 0, keyHolder);
+                    table->setItem(newPos, 1, valueHolder);
+                }
+                QString stringified;
+                auto    value = it.value();
+                jsonToString(stringified, value);
+                auto valueHolder = dataEntries.find(key)->second;
+                assert(valueHolder);
+                valueHolder->setText(stringified);
             }
-            QString stringified;
-            auto    value = it.value();
-            jsonToString(stringified, value);
-            auto valueHolder = dataEntries.find(key)->second;
-            assert(valueHolder);
-            valueHolder->setText(stringified);
         }
     }
     /*
