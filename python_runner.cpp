@@ -91,22 +91,26 @@ QString PythonRunner::eval(const QString& script)
     static PyObject* main             = PyImport_AddModule("__main__");
     static PyObject* globalDictionary = PyModule_GetDict(main);
     static PyObject* localDictionary  = PyDict_New();
-    auto ret = PyRun_String(str.c_str(), Py_eval_input, globalDictionary, localDictionary);
+
+    auto* obj = PyRun_String(str.c_str(), Py_eval_input, globalDictionary, localDictionary);
 
     QString data;
-    if (!ret)
+    if (!obj)
     {
         _save = PyEval_SaveThread();
         throw std::runtime_error(std::string{"PythonRunner::eval failed on "} + str);
     }
     else
     {
-        const char* s = PyString_AsString(ret);
+        const char* s = PyString_AsString(obj);
         if (s)
         {
             data = s;
         }
     }
+    // decrement reference count
+    Py_DECREF(obj);
+
     _save = PyEval_SaveThread();
 
     return data;
