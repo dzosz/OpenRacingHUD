@@ -3,8 +3,8 @@ import "../lib"
 
 DataReader {
     import_filename : "raceroom_telemetry_reader.py";
-    init_script : "receiver = raceroom_telemetry_reader.RaceRoomData()";
-    start_script : "receiver.start()";
+    init_script : "r3ercv = raceroom_telemetry_reader.RaceRoomData()";
+    start_script : "r3ercv.start()";
     stop_script : "";
-    get_data_script : "receiver.getJsonData()"
+    get_data_script : "r3ercv.getJsonData()"
 }

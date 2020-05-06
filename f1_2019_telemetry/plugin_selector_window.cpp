@@ -106,6 +106,7 @@ void PluginSelectorWindow::pluginEvent(const QString& plugin, const QString& eve
     if (it == qmlPlugins.end())
     {
         auto err = std::string("Cannot find plugin: " + event.toStdString());
+        qDebug() << err.c_str();
         throw std::runtime_error(err);
     }
 
@@ -127,6 +128,7 @@ void PluginSelectorWindow::gamePluginEvent(const QString& plugin, const QString&
     if (it == gameParsers.end())
     {
         auto err = std::string("Cannot find game plugin: " + event.toStdString());
+        qDebug() << err.c_str();
         throw std::runtime_error(err);
     }
 

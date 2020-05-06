@@ -7,6 +7,7 @@
 
 int main(int argc, char** argv)
 {
+#if defined(WINDOWS) || defined(__MINGW32__) || defined(__MINGW64__)
     Q_IMPORT_PLUGIN(QtQuick2Plugin)
     Q_IMPORT_PLUGIN(QtQuick2WindowPlugin)
 
@@ -49,6 +50,7 @@ int main(int argc, char** argv)
     qobject_cast<QQmlExtensionPlugin*>(qt_static_plugin_QtQuickControls2Plugin().instance())
         ->registerTypes("QtQuick.Controls");
     */
+#endif
 
     QApplication app(argc, argv);
     auto         win = new PluginSelectorWindow();  // has attr Qt::WA_DeleteOnClose

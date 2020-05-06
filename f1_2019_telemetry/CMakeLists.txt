@@ -45,11 +45,13 @@ if (WIN32 OR MINGW)
     find_library(QtQuick qtquick2plugin PATHS ${ROOT_PATH}/qt5/qml/QtQuick.2/)
     find_library(QtQuickQmlWorker Qt5QmlWorkerScript PATHS ${ROOT_PATH}/qt5/lib/)
     find_library(QtQuickWindow windowplugin PATHS ${ROOT_PATH}/qt5/qml/QtQuick/Window.2/)
+    SET(PLATFORM_SPECIFIC_LIBS ${QtQuick} ${QtQuickWindow} ${QtQuickQmlWorker})
     #find_library(QUICK_PLUGIN qtquick2plugin qtquickcontrols2plugin qquicklayoutsplugin qmlsettingsplugin widgetsplugin PATHS ${ROOT_PATH}/qt5/qml/QtQuick.2/ ${ROOT_PATH}/qt5/qml/QtQuick/ ${ROOT_PATH}/qt5/qml/Qt/labs/settings/ ${ROOT_PATH}/qt5/qml/QtQuick/PrivateWidgets/)
     # -lqxcb -lqtquick2plugin -lqtquickcontrolsplugin -ldialogplugin -lqquicklayoutsplugin -lwindowplugin -lqmlsettingsplugin -lwidgetsplugin -lqxcb-glx-integration -lqevdevkeyboardplugin -lqevdevmouseplugin"
 elseif (UNIX)
     # dont strip rpath on installed libs
     set(CMAKE_INSTALL_RPATH_USE_LINK_PATH TRUE)
+    set(PLATFORM_SPECIFIC_LIBS "")
 endif ()
 
 # IDE competion
@@ -91,7 +93,7 @@ add_custom_target(copy-scripts ALL
 
 include_directories(${Qt5Gui_INCLUDE_DIRS})
 
-target_link_libraries(qmloverlay     PRIVATE Qt5::Core Qt5::Qml Qt5::Quick Qt5::Widgets Qt5::QmlModels python2.7  ${QtQuick} ${QtQuickWindow} ${QtQuickQmlWorker})
+target_link_libraries(qmloverlay     PRIVATE Qt5::Core Qt5::Qml Qt5::Quick Qt5::Widgets Qt5::QmlModels python2.7 ${PLATFORM_SPECIFIC_LIBS})
 target_link_libraries(tests     PRIVATE Qt5::Core Qt5::Qml Qt5::Quick Qt5::Widgets python2.7 )
 add_test(alltests tests)
 
