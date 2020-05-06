@@ -210,19 +210,13 @@ class F12019Parser(object):
         return packet_id, player_id        
 
 # EXAMPLE ######################################################################
-# te instrukcje beda wykonane tylko jezeli odpalasz ten skrypt bezposrednio: C:\Python27\python.exe C:\Users\tomas\Desktop\f1.py
 if __name__ == '__main__':
-    # PRZYKLADOWE UZYCIE    
-
     receiver = DataReceiver(F12019Parser())
-    #overlay = F1Overlay()
-    #receiver.register(lambda data: overlay.update(*data['Motion'].wheelSlip))
-    receiver.start() # wystartuje osobny watek, ktory odbiera pakiety w tle
-    data = receiver.getData() # przeczytaj telemetrie raz - sama sie odswieza
-    while receiver.isRunning(): #  nieskonczona petla
+    # optional callback
+    #receiver.register(lambda data: print 'Received data!', data)
+    receiver.start() # starts udp background thread
+    data = receiver.getData() # read once - changes inplace
+    while receiver.isRunning():
         if receiver.isConnected():
-            #print "speed", data['Telemetry'].speed, " throttle", data['Telemetry'].throttle, \
-            #    " brake", data['Telemetry'].brake, " gear", data['Telemetry'].gear
-            pass
-         # nie uzywaj sleepa w programie sterujacym!
+            print 'Speed:', data['Telemetry'].speed
         time.sleep(1)
