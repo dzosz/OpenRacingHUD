@@ -40,7 +40,6 @@ if (WIN32 OR MINGW)
     SET(CMAKE_SHARED_LIBRARY_PREFIX "")
     SET(CMAKE_EXECUTABLE_SUFFIX .exe)
     set(CPACK_SYSTEM_NAME "Windows")
-    set(CONDITIONAL_WIN32_SOURCES asettosharedmemoryreader.cpp)
     # windows static library issue workaround for 'Module "QtQuick" plugin "qtquick2plugin" not found'
     find_library(QtQuick qtquick2plugin PATHS ${ROOT_PATH}/qt5/qml/QtQuick.2/)
     find_library(QtQuickQmlWorker Qt5QmlWorkerScript PATHS ${ROOT_PATH}/qt5/lib/)
