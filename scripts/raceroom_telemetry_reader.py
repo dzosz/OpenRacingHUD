@@ -305,13 +305,6 @@ class RaceRoomData(object):
         self.obj = r3e_shared()
 
     def getJsonData(self):
-        obj = r3e_shared.from_buffer_copy(self.buff)      
-        data = {}
-        self._getDictFromStructure(data, "", obj)
-        self._convertData(data)
-        return json.dumps(data)
-
-    def getJsonData(self):
         return json.dumps(self.getData())
 
     def getData(self):
