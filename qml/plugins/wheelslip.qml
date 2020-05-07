@@ -20,7 +20,7 @@ Window {
 
 
     Component.onCompleted: {
-        //console.log('WheelSlip loaded' )
+        console.log('WheelSlip loaded' )
     }
 
     // draggable window
@@ -32,36 +32,44 @@ Window {
             onMouseYChanged: window.y += (mouseY - lastMousePos.y)
     }
 
-
     Telemetry {
         objectName:  "telemetry"
         id: telemetry
     }
 
     function onUpdate() {
-        rearLeft.color = getHueForWheelSlip(telemetry.wheelSlip[0]);
-        rearRight.color = getHueForWheelSlip(telemetry.wheelSlip[1]);
-        frontLeft.color = getHueForWheelSlip(telemetry.wheelSlip[2]);
-        frontRight.color = getHueForWheelSlip(telemetry.wheelSlip[3]);
+        rearLeft.color = getHueForWheelSlip(telemetry.wheelSlip[2]);
+        rearRight.color = getHueForWheelSlip(telemetry.wheelSlip[3]);
+        frontLeft.color = getHueForWheelSlip(telemetry.wheelSlip[0]);
+        frontRight.color = getHueForWheelSlip(telemetry.wheelSlip[1]);
 
-        rearLeftText.text = telemetry.wheelSlip[0];
-        rearRightText.text = telemetry.wheelSlip[1];
-        frontLeftText.text = telemetry.wheelSlip[2];
-        frontRightText.text = telemetry.wheelSlip[3];
+        rearLeftText.text = telemetry.wheelSlip[2];
+        rearRightText.text = telemetry.wheelSlip[3];
+        frontLeftText.text = telemetry.wheelSlip[0];
+        frontRightText.text = telemetry.wheelSlip[1];
 
         //console.log('onUpdate() : wheelSlip: ' + telemetry.wheelSlip);
        }
 
+	function scaleLogarithmically(percent : int)
+	{
+		var multiplier = 10.0;
+		var scaled = 100 * (Math.log(1 + (percent * multiplier)) / Math.log(1 + (100 * multiplier)));
+		console.log('scaled', percent, ' to ', scaled);
+		return scaled;
+	}
+
     function getHueForWheelSlip(percent : int)
     {
-        var multiplier       = 10;
+        
         var green            = 120.0;
         var color_multiplier = green / 100;
 
+        // TODO This should be enabled for F1 Games
         // quickly gets yellow, red at about 10%
-        var scaled = 100 * (Math.log(1 + (percent * multiplier)) / Math.log(1 + (100 * multiplier)));
+        // percent = scaleLogarithmically(percent)		
 
-        var hue = (green - (color_multiplier * scaled));
+        var hue = green - (color_multiplier * percent);
         return Qt.hsva(hue/360, 1, 1, 0.5);
     }
 
