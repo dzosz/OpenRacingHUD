@@ -3,6 +3,7 @@ import mmap
 import json
 import time
 
+
 '''
 class r3e_vec3_f64(Structure):
     _pack_ = 1
@@ -310,6 +311,16 @@ class RaceRoomData(object):
         self._convertData(data)
         return json.dumps(data)
 
+    def getJsonData(self):
+        return json.dumps(self.getData())
+
+    def getData(self):
+        obj = r3e_shared.from_buffer_copy(self.buff)
+        data = {}
+        self._getDictFromStructure(data, "", obj)
+        self._convertData(data)
+        return data
+
     def start(self):
         if not self.buff:
             R3E_SHARED_MEMORY_NAME = "$R3E"  
@@ -341,5 +352,5 @@ if __name__ == '__main__':
     r3reader = RaceRoomData()
     r3reader.start()
     while True:
-        print 'R3E data:', r3reader.getJsonData()
+        print 'R3E data:', r3reader.getData()
         time.sleep(1)
