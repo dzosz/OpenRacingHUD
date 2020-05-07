@@ -48,13 +48,20 @@ if (WIN32 OR MINGW)
     SET(PLATFORM_SPECIFIC_LIBS ${QtQuick} ${QtQuickWindow} ${QtQuickQmlWorker})
 
     set(Python2_LIBRARIES "${CMAKE_SOURCE_DIR}/dep/python2.7-mingw/lib64/libpython27.a")
+    #set(Python2_LIBRARIES "${CMAKE_SOURCE_DIR}/dep/python2.7-mingw/lib64/python27.dll")
 
-    # todo figure out why mingw mxe builds depend on python27.dll
+    # TODO why the build depends on python27.dll even we link it statically?
     set(Python2_WIN_SHARED_LIB "${CMAKE_SOURCE_DIR}/dep/python2.7-mingw/lib64/python27.dll")
     install(FILES ${Python2_WIN_SHARED_LIB} DESTINATION bin)
 
+
     #find_library(QUICK_PLUGIN qtquick2plugin qtquickcontrols2plugin qquicklayoutsplugin qmlsettingsplugin widgetsplugin PATHS ${ROOT_PATH}/qt5/qml/QtQuick.2/ ${ROOT_PATH}/qt5/qml/QtQuick/ ${ROOT_PATH}/qt5/qml/Qt/labs/settings/ ${ROOT_PATH}/qt5/qml/QtQuick/PrivateWidgets/)
     # -lqxcb -lqtquick2plugin -lqtquickcontrolsplugin -ldialogplugin -lqquicklayoutsplugin -lwindowplugin -lqmlsettingsplugin -lwidgetsplugin -lqxcb-glx-integration -lqevdevkeyboardplugin -lqevdevmouseplugin"
+
+    add_custom_target(install-python-runtime-for-windows ALL
+        COMMAND ${CMAKE_COMMAND} -E create_symlink ${CMAKE_SOURCE_DIR}/dep/python2.7-mingw/runtime ${CMAKE_BINARY_DIR}/python
+        DEPENDS ${MY_TARGET})
+    install(DIRECTORY ${CMAKE_SOURCE_DIR}/dep/python2.7-mingw/runtime/ DESTINATION bin/python/ PATTERN runtime/*)
 elseif (UNIX)
     # dont strip rpath on installed libs
     set(CMAKE_INSTALL_RPATH_USE_LINK_PATH TRUE)
