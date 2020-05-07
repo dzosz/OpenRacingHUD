@@ -58,10 +58,12 @@ qobject_cast<QQmlExtensionPlugin*>(qt_static_plugin_QtQuickControls2Plugin().ins
 
 int main(int argc, char **argv)
 {
+#if defined(WINDOWS) || defined(__MINGW32__) || defined(__MINGW64__)
     qInstallMessageHandler(messageHandler);
+#endif
 
-    QApplication app(argc, argv);
-    auto         win = new PluginSelectorWindow();  // has attr Qt::WA_DeleteOnClose
+        QApplication app(argc, argv);
+    auto             win = new PluginSelectorWindow();  // has attr Qt::WA_DeleteOnClose
     win->show();
     return app.exec();
 }
