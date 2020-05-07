@@ -2,6 +2,7 @@
 
 #include <python2.7/Python.h>
 #include <QDebug>
+#include <QDir>
 #include <functional>
 #include <iostream>
 #include <stdexcept>
@@ -43,10 +44,33 @@ PythonRunner::PythonRunner()
 
     assert(!Py_IsInitialized());
 
+#if defined(WINDOWS) || defined(__MINGW32__) || defined(__MINGW64__)
+
+    // TODO to the same for linux binaries?
+    // required path to standard library so the user doesn't need his own Python installation
+    auto currDir = QDir(fname.c_str());
+    currDir.cdUp();
+    currDir.cd("python");
+    qDebug() << "PythonRunner::SetPythonHome " << currDir.path().toStdString().c_str();
+    Py_SetPythonHome((char*)currDir.path().toStdString().c_str());
+#endif
+
     Py_SetProgramName((char*)argv);
     Py_Initialize();
+
+#if defined(WINDOWS) || defined(__MINGW32__) || defined(__MINGW64__)
+    // TODO, use syspath? append instead modifying?
+    // TODO is it really doing anything after py_initialize?
+    // qDebug() << "PythonRunner::SetPath " << currDir.path().toStdString().c_str();
+    auto namevalue = std::string{"PYTHONPATH="} + currDir.path().toStdString();
+    qDebug() << "PythonRunner::set env " << namevalue.c_str();
+    // PySys_SetPath((char*)currDir.path().toStdString().c_str());
+    _putenv(namevalue.c_str());
+#endif
+
     if (!PyEval_ThreadsInitialized())
     {
+        qDebug() << "PythonRunner::PythonRunner PyEval_InitThreads ";
         PyEval_InitThreads();
     }
 
@@ -92,7 +116,12 @@ QString PythonRunner::eval(const QString& script)
     static PyObject* globalDictionary = PyModule_GetDict(main);
     static PyObject* localDictionary  = PyDict_New();
 
-    auto* obj = PyRun_String(str.c_str(), Py_eval_input, globalDictionary, localDictionary);
+    static PyObject* obj;
+    if (obj)
+    {
+        // Py_DECREF(obj);
+    }
+    obj = PyRun_String(str.c_str(), Py_eval_input, globalDictionary, localDictionary);
 
     QString data;
     if (!obj)
@@ -108,8 +137,9 @@ QString PythonRunner::eval(const QString& script)
             data = s;
         }
     }
-    // decrement reference count
-    Py_DECREF(obj);
+
+    // FIXME crashes on windows
+    // Py_CLEAR(compiled);  // or Py_DECREF
 
     _save = PyEval_SaveThread();
 
@@ -126,10 +156,9 @@ void PythonRunner::import(const QString& fname)
     {
         str = str.substr(0, extPos);
     }
+    auto cmd = std::string{"import "} + str + ";";
 
     PyEval_RestoreThread(_save);
-
-    auto cmd = std::string{"import "} + str + ";";
     auto ret = PyRun_SimpleString(cmd.c_str());
     _save    = PyEval_SaveThread();
 
