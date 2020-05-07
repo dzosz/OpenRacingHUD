@@ -2,6 +2,7 @@ from ctypes import Structure, c_int, c_float, c_double, c_char, sizeof, Array
 import mmap
 import json
 import time
+from array import array
 
 
 '''
@@ -302,13 +303,13 @@ class r3e_shared(Structure):
 class RaceRoomData(object):
     def __init__(self):
         self.buff = None
-        self.obj = r3e_shared()
 
     def getJsonData(self):
         return json.dumps(self.getData())
 
     def getData(self):
-        obj = r3e_shared.from_buffer_copy(self.buff)
+        arr = array('c', self.buff) 
+        obj = r3e_shared.from_buffer(arr) # IronPython compatible - requires array type
         data = {}
         self._getDictFromStructure(data, "", obj)
         self._convertData(data)
