@@ -45,7 +45,7 @@ if (WIN32 OR MINGW)
     find_library(QtQuick qtquick2plugin PATHS ${ROOT_PATH}/qt5/qml/QtQuick.2/)
     find_library(QtQuickQmlWorker Qt5QmlWorkerScript PATHS ${ROOT_PATH}/qt5/lib/)
     find_library(QtQuickWindow windowplugin PATHS ${ROOT_PATH}/qt5/qml/QtQuick/Window.2/)    
-    SET(PLATFORM_SPECIFIC_LIBS ${QtQuick} ${QtQuickWindow} ${QtQuickQmlWorker})
+    SET(QT_PLATFORM_SPECIFIC_LIBS ${QtQuick} ${QtQuickWindow} ${QtQuickQmlWorker})
 
     set(Python2_LIBRARIES "${CMAKE_SOURCE_DIR}/dep/python2.7-mingw/lib64/libpython27.a")
     #set(Python2_LIBRARIES "${CMAKE_SOURCE_DIR}/dep/python2.7-mingw/lib64/python27.dll")
@@ -65,7 +65,7 @@ if (WIN32 OR MINGW)
 elseif (UNIX)
     # dont strip rpath on installed libs
     set(CMAKE_INSTALL_RPATH_USE_LINK_PATH TRUE)
-    set(PLATFORM_SPECIFIC_LIBS "")
+    set(QT_PLATFORM_SPECIFIC_LIBS "")
     find_package(Python2 COMPONENTS Development REQUIRED)
 endif ()
 
@@ -108,7 +108,7 @@ add_custom_target(copy-scripts ALL
 
 include_directories(${Qt5Gui_INCLUDE_DIRS})
 
-target_link_libraries(qmloverlay     PRIVATE Qt5::Core Qt5::Qml Qt5::Quick Qt5::Widgets ${PLATFORM_SPECIFIC_LIBS} ${Python2_LIBRARIES})
+target_link_libraries(qmloverlay     PRIVATE Qt5::Core Qt5::Qml Qt5::Quick Qt5::Widgets ${QT_PLATFORM_SPECIFIC_LIBS} ${Python2_LIBRARIES})
 target_link_libraries(tests     PRIVATE Qt5::Core ${Python2_LIBRARIES})
 add_test(alltests tests)
 
