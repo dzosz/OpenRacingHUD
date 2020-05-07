@@ -72,7 +72,8 @@ void jsonToString(QString& stringified, const QJsonValue& value)
         {
             std::string err =
                 "jsonToString case not handled: QJsonValue::" + std::to_string(value.type());
-            assert(throw std::runtime_error(err));
+            qDebug() << err.c_str();
+            // throw std::runtime_error(err);
         }
     }
 }
@@ -372,6 +373,7 @@ void PluginSelectorWindow::refreshData()
         QString data;
         QMetaObject::invokeMethod(startedGameParser, "getJsonData", Q_RETURN_ARG(QString, data));
         auto doc = QJsonDocument::fromJson(data.toLatin1()).object();
+
         // auto    dataMap = doc.object().toVariantMap();
 
         for (auto& plugin : qmlPlugins)
