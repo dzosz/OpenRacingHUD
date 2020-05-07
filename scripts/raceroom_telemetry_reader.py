@@ -308,8 +308,9 @@ class RaceRoomData(object):
         return json.dumps(self.getData())
 
     def getData(self):
-        arr = array('c', self.buff) 
-        obj = r3e_shared.from_buffer(arr) # IronPython compatible - requires array type
+        self.buff.seek(0)
+        raw = array('b', self.buff.read(sizeof(r3e_shared)))
+        obj = r3e_shared.from_buffer(raw) # IronPython compatibility - needs array type
         data = {}
         self._getDictFromStructure(data, "", obj)
         self._convertData(data)

@@ -4,3 +4,6 @@ bin/
 *.pyc
 *un~
 bld-*/
+python/
+*.dll
+*.exe
